@@ -28,10 +28,6 @@
             margin-right: auto;
             white-space: pre-line;
         }
-        .image-link {
-            display: inline;
-            word-wrap: break-word;
-        }
     </style>
 </head>
 <body>
@@ -48,15 +44,31 @@
             document.getElementById("copyBtn").addEventListener("click", copyToClipboard);
         });
 
-        function extractLinks() {
+        async function getBlockedWords() {
+            try {
+                let response = await fetch("blok.txt");
+                if (!response.ok) throw new Error("Gagal memuat daftar blokir");
+                let text = await response.text();
+                return text.split(/\r?\n/).filter(word => word.trim() !== "");
+            } catch (error) {
+                console.error(error);
+                return [];
+            }
+        }
+
+        async function extractLinks() {
             let inputCode = document.getElementById("inputCode").value;
             let regex = /https?:\/\/(?!www\.bing\.com|r\.bing\.com)[^\s"',]+\.(?:jpg|jpeg|png|bmp|webp|svg)/gi;
             let outputDiv = document.getElementById("output");
             let result = [];
             let match;
-            
+            let blockedWords = await getBlockedWords();
+
             while ((match = regex.exec(inputCode)) !== null) {
-                result.push(match[0]);
+                let link = match[0];
+                if (!blockedWords.some(word => link.includes(word))) {
+                    result.push(link);
+                }
             }
             
             outputDiv.textContent = result.length > 0 ? result.join("\n") : "Tidak ada link gambar ditemukan.";
@@ -64,7 +76,6 @@
 
         function copyToClipboard() {
             let textToCopy = document.getElementById("output").textContent;
-            
             navigator.clipboard.writeText(textToCopy).then(() => {
                 alert("Hasil telah disalin ke clipboard!");
             }).catch(err => {
