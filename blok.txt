@@ -9,3 +9,4 @@ justbitememeals.com
 ssl.gstatic.com
 www.eatingwell.com
 fonts.gstatic.com
+yastatic.net
